@@ -13,7 +13,7 @@ import (
 func printUsage() {
 	yellow := color.New(color.FgYellow)
 	printYellow := yellow.SprintFunc()
-	fmt.Printf("%s prov-stdlib [-v] COMMAND [ID]\n\nSupported commands:\n  random\tReturn a random proverb.\n  get\t\tReturn the proverb associated with the passed ID.\n  help\t\tPrint this message.\n\nSupported flags:\n", printYellow("Usage:"))
+	fmt.Fprintf(color.Output, "%s prov-stdlib [-v] COMMAND [ID]\n\nSupported commands:\n  random\tReturn a random proverb.\n  get\t\tReturn the proverb associated with the passed ID.\n  help\t\tPrint this message.\n\nSupported flags:\n", printYellow("Usage:"))
 	flag.PrintDefaults()
 }
 
@@ -60,7 +60,7 @@ func main() {
 	// environment variables are simple to use
 	baseURL := os.Getenv("PROVERBS_URL")
 	if baseURL == "" {
-		fmt.Printf("%s PROVERBS_URL must be set to the API endpoint to retrieve proverbs from.\n", printBoldRed("[ERROR]"))
+		fmt.Fprintf(color.Output, "%s PROVERBS_URL must be set to the API endpoint to retrieve proverbs from.\n", printBoldRed("[ERROR]"))
 		os.Exit(1) // exit codes are a simple call
 	}
 
@@ -77,12 +77,12 @@ func main() {
 
 	proverb, err := proverbs.GetProverb(baseURL, id, headers)
 	if err != nil {
-		fmt.Printf("%s %s\n", printBoldRed("[ERROR]"), err.Error())
+		fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
 		os.Exit(1)
 	}
 	output := proverb.Value
 	if verbose {
 		output = fmt.Sprintf("%s: %s", proverb.ID, output)
 	}
-	fmt.Println(output)
+	fmt.Fprintln(color.Output, output)
 }
