@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,19 +13,27 @@ import (
 func printUsage() {
 	yellow := color.New(color.FgYellow)
 	printYellow := yellow.SprintFunc()
-	fmt.Printf("%s prov-stdlib COMMAND [ID]\n\nSupported commands:\n\trandom\t\tReturn a random proverb.\n\tget $ID\t\tReturn the proverb associated with $ID.\n\thelp\t\tPrint this message.\n", printYellow("Usage:"))
+	fmt.Printf("%s prov-stdlib [-v] COMMAND [ID]\n\nSupported commands:\n  random\tReturn a random proverb.\n  get\t\tReturn the proverb associated with the passed ID.\n  help\t\tPrint this message.\n\nSupported flags:\n", printYellow("Usage:"))
+	flag.PrintDefaults()
 }
 
 func main() {
+	// let's have a verbose mode
+	var verbose bool
+	flag.BoolVar(&verbose, "v", false, "Print the proverb's ID as well as the proverb.")
+	flag.Parse()
+	flag.Usage = printUsage
+
 	// let's use subcommands
 	var action, id string
-	if len(os.Args) < 2 || len(os.Args) > 3 {
+	args := flag.Args()
+	if len(args) < 1 || len(args) > 2 {
 		printUsage()
 		os.Exit(1)
 	}
-	action = os.Args[1]
-	if len(os.Args) > 2 {
-		id = os.Args[2]
+	action = args[0]
+	if len(args) > 1 {
+		id = args[1]
 	}
 	if action == "get" && id == "" {
 		printUsage()
@@ -71,5 +80,9 @@ func main() {
 		fmt.Printf("%s %s\n", printBoldRed("[ERROR]"), err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(proverb.Value)
+	output := proverb.Value
+	if verbose {
+		output = fmt.Sprintf("%s: %s", proverb.ID, output)
+	}
+	fmt.Println(output)
 }
