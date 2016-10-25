@@ -6,14 +6,20 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/paddyforan/go-cli-talk/proverbs"
 )
 
 func main() {
+	// let's add some color
+	red := color.New(color.FgRed)
+	boldRed := red.Add(color.Bold)
+	printBoldRed := boldRed.SprintFunc()
+
 	// environment variables are simple to use
 	baseURL := os.Getenv("PROVERBS_URL")
 	if baseURL == "" {
-		fmt.Println("PROVERBS_URL must be set to the API endpoint to retrieve proverbs from.")
+		fmt.Printf("%s PROVERBS_URL must be set to the API endpoint to retrieve proverbs from.\n", printBoldRed("[ERROR]"))
 		os.Exit(1) // exit codes are a simple call
 	}
 
@@ -35,7 +41,7 @@ func main() {
 
 	proverb, err := proverbs.GetProverb(baseURL, id, headers)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("%s %s\n", printBoldRed("[ERROR]"), err.Error())
 		os.Exit(1)
 	}
 	fmt.Println(proverb.Value)

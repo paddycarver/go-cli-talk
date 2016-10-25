@@ -1,0 +1,28 @@
+{
+	"ImportPath": "github.com/paddyforan/go-cli-talk",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/fatih/color",
+			"Comment": "v0.2.0-3-gdea9d3a",
+			"Rev": "dea9d3a26a087187530244679c1cfb3a42937794"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.0.6-6-g6c903ff",
+			"Rev": "6c903ff4aa50920ca86087a280590b36b3152b9c"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "9bb9f0998d48b31547d975974935ae9b48c7a03c"
+		}
+	]
+}
