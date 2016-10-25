@@ -2,6 +2,7 @@ package proverbs
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -34,6 +35,14 @@ func GetProverb(baseURL, id string, h http.Header) (Quote, error) {
 		return Quote{}, err
 	}
 	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusBadRequest:
+		return Quote{}, errors.New("bad request")
+	case http.StatusNotFound:
+		return Quote{}, errors.New("that proverb doesn't exist")
+	case http.StatusInternalServerError:
+		return Quote{}, errors.New("proverbs server ran into a problem, try again later")
+	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return Quote{}, err
