@@ -25,6 +25,7 @@ func GetProverb(baseURL, id string, h http.Header) (Quote, error) {
 	if err != nil {
 		return Quote{}, err
 	}
+	req.Header.Set("Accept", "application/json")
 	for k, v := range h {
 		req.Header[k] = append(req.Header[k], v...)
 	}
