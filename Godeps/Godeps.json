@@ -12,6 +12,10 @@
 			"Rev": "dea9d3a26a087187530244679c1cfb3a42937794"
 		},
 		{
+			"ImportPath": "github.com/inconshreveable/mousetrap",
+			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+		},
+		{
 			"ImportPath": "github.com/mattn/go-colorable",
 			"Comment": "v0.0.6-6-g6c903ff",
 			"Rev": "6c903ff4aa50920ca86087a280590b36b3152b9c"
@@ -19,6 +23,14 @@
 		{
 			"ImportPath": "github.com/mattn/go-isatty",
 			"Rev": "66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8"
+		},
+		{
+			"ImportPath": "github.com/spf13/cobra",
+			"Rev": "856b96dcb49d6427babe192998a35190a12c2230"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "bf8481a6aebc13a8aab52e699ffe2e79771f5a3f"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
