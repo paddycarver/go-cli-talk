@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/paddyforan/go-cli-talk/proverbs"
@@ -21,7 +22,18 @@ func main() {
 	flag.StringVar(&id, "proverb", "", "the ID of the proverb to retrieve; leave empty for a random proverb")
 	flag.Parse()
 
-	proverb, err := proverbs.GetProverb(baseURL, id, nil)
+	headers := http.Header{}
+
+	errMode := os.Getenv("ERROR")
+
+	switch errMode {
+	case "400":
+		headers.Set("Return-Error", "bad-request")
+	case "500":
+		headers.Set("Return-Error", "internal")
+	}
+
+	proverb, err := proverbs.GetProverb(baseURL, id, headers)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
