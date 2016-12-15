@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type Quote struct {
@@ -30,7 +31,8 @@ func GetProverb(baseURL, id string, h http.Header) (Quote, error) {
 	for k, v := range h {
 		req.Header[k] = append(req.Header[k], v...)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{Timeout: time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		return Quote{}, err
 	}

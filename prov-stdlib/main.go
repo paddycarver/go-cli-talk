@@ -54,7 +54,9 @@ func printProverb(proverb proverbs.Quote, verbose bool) {
 func main() {
 	// let's have a verbose mode
 	var verbose bool
+	var retry int
 	flag.BoolVar(&verbose, "v", false, "Print the proverb's ID as well as the proverb.")
+	flag.IntVar(&retry, "retry500", 0, "Will retry if response is a 500 until successful.")
 	flag.Parse()
 	flag.Usage = printUsage
 
@@ -110,16 +112,38 @@ func main() {
 			proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
 			if err != nil {
 				fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
-				os.Exit(1)
+				if retry > 0 || retry == -1 {
+					continue
+				} else {
+					os.Exit(1)
+				}
 			}
 
 			printProverb(proverb, verbose)
 		}
 	} else {
-		proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
-		if err != nil {
-			fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
-			os.Exit(1)
+		var proverb proverbs.Quote
+		var err error
+		var count int
+		for {
+			proverb, err = getProverb(baseURL, id, errMode, delay, chaos)
+			count++
+			if err != nil {
+				if retry > 0 || retry == -1 {
+					if verbose {
+						fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
+					}
+					if count <= retry || retry == -1 {
+						continue
+					} else {
+						fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
+					}
+				} else {
+					fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
+					os.Exit(1)
+				}
+			}
+			break
 		}
 
 		printProverb(proverb, verbose)
