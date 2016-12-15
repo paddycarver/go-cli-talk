@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -81,6 +82,14 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	case "bad-request":
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+	if r.Header.Get("Sleep") != "" {
+		dur, err := strconv.Atoi(r.Header.Get("Sleep"))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		time.Sleep(time.Duration(dur) * time.Second)
 	}
 	rand.Seed(time.Now().UnixNano())
 	key := r.URL.Query().Get("quote")

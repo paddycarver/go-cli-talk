@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/paddyforan/go-cli-talk/proverbs"
@@ -13,8 +15,40 @@ import (
 func printUsage() {
 	yellow := color.New(color.FgYellow)
 	printYellow := yellow.SprintFunc()
-	fmt.Fprintf(color.Output, "%s prov-stdlib [-v] COMMAND [ID]\n\nSupported commands:\n  random\tReturn a random proverb.\n  get\t\tReturn the proverb associated with the passed ID.\n  help\t\tPrint this message.\n\nSupported flags:\n", printYellow("Usage:"))
+	fmt.Fprintf(color.Output, "%s prov-stdlib [-v] COMMAND [ID]\n\nSupported commands:\n  random\tReturn a random proverb.\n  get\t\tReturn the proverb associated with the passed ID.\n  watch\t\tPrint a new proverb every second.\n  help\t\tPrint this message.\n\nSupported flags:\n", printYellow("Usage:"))
 	flag.PrintDefaults()
+}
+
+func getProverb(baseURL, id, errMode, delay, chaos string) (proverbs.Quote, error) {
+	headers := http.Header{}
+
+	switch errMode {
+	case "400":
+		headers.Set("Return-Error", "bad-request")
+	case "500":
+		headers.Set("Return-Error", "internal")
+	}
+
+	if delay != "" {
+		headers.Set("Sleep", delay)
+	}
+
+	if chaos != "" {
+		rand.Seed(time.Now().UnixNano())
+		if rand.Intn(99)%2 == 0 {
+			headers.Set("Return-Error", "internal")
+		}
+	}
+
+	return proverbs.GetProverb(baseURL, id, headers)
+}
+
+func printProverb(proverb proverbs.Quote, verbose bool) {
+	output := proverb.Value
+	if verbose {
+		output = fmt.Sprintf("%s: %s", proverb.ID, output)
+	}
+	fmt.Fprintln(color.Output, output)
 }
 
 func main() {
@@ -43,11 +77,15 @@ func main() {
 		printUsage()
 		os.Exit(1)
 	}
+	if action == "watch" && id != "" {
+		printUsage()
+		os.Exit(1)
+	}
 	if action == "help" {
 		printUsage()
 		return
 	}
-	if action != "help" && action != "get" && action != "random" {
+	if action != "help" && action != "get" && action != "random" && action != "watch" {
 		printUsage()
 		os.Exit(1)
 	}
@@ -63,26 +101,27 @@ func main() {
 		fmt.Fprintf(color.Output, "%s PROVERBS_URL must be set to the API endpoint to retrieve proverbs from.\n", printBoldRed("[ERROR]"))
 		os.Exit(1) // exit codes are a simple call
 	}
-
-	headers := http.Header{}
-
 	errMode := os.Getenv("ERROR")
+	delay := os.Getenv("HAMMERTIME")
+	chaos := os.Getenv("CHAOS")
 
-	switch errMode {
-	case "400":
-		headers.Set("Return-Error", "bad-request")
-	case "500":
-		headers.Set("Return-Error", "internal")
-	}
+	if action == "watch" {
+		for range time.Tick(time.Second) {
+			proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
+			if err != nil {
+				fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
+				os.Exit(1)
+			}
 
-	proverb, err := proverbs.GetProverb(baseURL, id, headers)
-	if err != nil {
-		fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
-		os.Exit(1)
+			printProverb(proverb, verbose)
+		}
+	} else {
+		proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
+		if err != nil {
+			fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
+			os.Exit(1)
+		}
+
+		printProverb(proverb, verbose)
 	}
-	output := proverb.Value
-	if verbose {
-		output = fmt.Sprintf("%s: %s", proverb.ID, output)
-	}
-	fmt.Fprintln(color.Output, output)
 }
