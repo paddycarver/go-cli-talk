@@ -19,7 +19,7 @@ func printUsage() {
 	flag.PrintDefaults()
 }
 
-func getProverb(baseURL, id, errMode, delay, chaos string) (proverbs.Quote, error) {
+func getProverb(baseURL, id, errMode, delay, chaos string, verbose bool, retries int) (proverbs.Quote, error) {
 	headers := http.Header{}
 
 	switch errMode {
@@ -40,7 +40,25 @@ func getProverb(baseURL, id, errMode, delay, chaos string) (proverbs.Quote, erro
 		}
 	}
 
-	return proverbs.GetProverb(baseURL, id, headers)
+	var proverb proverbs.Quote
+	var err error
+
+	for attempt := 1; attempt <= retries; attempt++ {
+		if verbose {
+		}
+		proverb, err = proverbs.GetProverb(baseURL, id, headers)
+		if err != nil {
+			if verbose {
+				fmt.Fprintf(color.Output, "%s %s\n", "[ERROR]", err.Error())
+			}
+			if attempt == retries {
+				return proverbs.Quote{}, err
+			}
+		} else {
+			break
+		}
+	}
+	return proverb, nil
 }
 
 func printProverb(proverb proverbs.Quote, verbose bool) {
@@ -54,7 +72,9 @@ func printProverb(proverb proverbs.Quote, verbose bool) {
 func main() {
 	// let's have a verbose mode
 	var verbose bool
+	var retry int
 	flag.BoolVar(&verbose, "v", false, "Print the proverb's ID as well as the proverb.")
+	flag.IntVar(&retry, "retry-attempts", 3, "Number of attempts to retry in the face of a server error.")
 	flag.Parse()
 	flag.Usage = printUsage
 
@@ -107,7 +127,7 @@ func main() {
 
 	if action == "watch" {
 		for range time.Tick(time.Second) {
-			proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
+			proverb, err := getProverb(baseURL, id, errMode, delay, chaos, verbose, retry)
 			if err != nil {
 				fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
 				os.Exit(1)
@@ -116,7 +136,7 @@ func main() {
 			printProverb(proverb, verbose)
 		}
 	} else {
-		proverb, err := getProverb(baseURL, id, errMode, delay, chaos)
+		proverb, err := getProverb(baseURL, id, errMode, delay, chaos, verbose, retry)
 		if err != nil {
 			fmt.Fprintf(color.Output, "%s %s\n", printBoldRed("[ERROR]"), err.Error())
 			os.Exit(1)
